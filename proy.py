@@ -1,76 +1,157 @@
 import streamlit as st
+from streamlit.components.v1 import html
 
-# Configuración de la página
-st.set_page_config(page_title="Heladería Tropical", layout="wide")
-
-st.sidebar.title("Carrito de Compras")
-
-# Inicializar el carrito en la sesión si no existe
-if "carrito" not in st.session_state:
-    st.session_state.carrito = []
-
-# Lista de productos (con imágenes reales de la web oficial)
-productos = [
-    {
-        "nombre": "MegaCono Clásico",
-        "precio": 3500,
-        "categoria": "Conos",
-        "imagen": "https://www.tiendacremhelado.com.co/wp-content/uploads/2021/04/cono-megacono.png"
-    },
-    {
-        "nombre": "Mini Cono Vainilla",
-        "precio": 2500,
-        "categoria": "Conos",
-        "imagen": "https://www.tiendacremhelado.com.co/wp-content/uploads/2021/04/cono-mini-vainilla.png"
-    },
-    {
-        "nombre": "Sandwich Cremoso",
-        "precio": 3700,
-        "categoria": "Sandwiches",
-        "imagen": "https://www.tiendacremhelado.com.co/wp-content/uploads/2021/04/sandwich-cremoso.png"
+# HTML, CSS y JS incrustado
+html_code = """
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heladería Tropical</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      margin: 0;
+      background: #fff6f6;
     }
-]
+    header {
+      background-color: #f44336;
+      color: white;
+      padding: 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    header h1 {
+      margin: 0;
+    }
+    .search-bar {
+      padding: 1rem;
+      text-align: center;
+    }
+    .search-bar input {
+      width: 60%;
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    .productos {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1rem;
+      padding: 1rem;
+    }
+    .producto {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+      width: 250px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .producto img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    .btn {
+      background-color: #ff4081;
+      color: white;
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 0.5rem;
+    }
+    .btn:hover {
+      background-color: #e91e63;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #f8dcdc;
+    }
+  </style>
+</head>
+<body>
 
-# Función para agregar producto al carrito
-def agregar_al_carrito(producto):
-    st.session_state.carrito.append(producto)
+  <header>
+    <h1>🍦 Heladería Tropical</h1>
+    <div id="carrito">🛒 Carrito (0)</div>
+  </header>
 
-# Mostrar productos en el carrito
-if st.session_state.carrito:
-    total = sum(item["precio"] for item in st.session_state.carrito)
-    for item in st.session_state.carrito:
-        st.sidebar.write(f"{item['nombre']} - ${item['precio']}")
-    st.sidebar.write(f"**Total: ${total}**")
-    if st.sidebar.button("Vaciar carrito"):
-        st.session_state.carrito = []
-else:
-    st.sidebar.write("Tu carrito está vacío.")
+  <div class="search-bar">
+    <input type="text" placeholder="Buscar helado..." onkeyup="buscarHelado(this.value)">
+  </div>
 
-# Encabezado principal
-st.title("Heladería Tropical")
-st.write("¡Explora nuestros sabores irresistibles y arma tu carrito!")
+  <div class="productos" id="lista-productos">
+    <!-- Productos se insertan por JavaScript -->
+  </div>
 
-# Filtro por categoría
-categorias = ["Todos"] + sorted(list(set(p["categoria"] for p in productos)))
-categoria_seleccionada = st.selectbox("Filtrar por categoría", categorias)
+  <footer>
+    © 2025 Heladería Tropical. Todos los derechos reservados.
+  </footer>
 
-# Buscador
-busqueda = st.text_input("Buscar helado...")
+  <script>
+    const productos = [
+      {
+        nombre: "MegaCono Clásico",
+        precio: 3500,
+        imagen: "https://www.tiendacremhelado.com.co/wp-content/uploads/2021/04/cono-megacono.png"
+      },
+      {
+        nombre: "Mini Cono Vainilla",
+        precio: 2500,
+        imagen: "https://www.tiendacremhelado.com.co/wp-content/uploads/2021/04/cono-mini-vainilla.png"
+      },
+      {
+        nombre: "Sandwich Cremoso",
+        precio: 3700,
+        imagen: "https://www.tiendacremhelado.com.co/wp-content/uploads/2021/04/sandwich-cremoso.png"
+      }
+    ];
 
-# Filtrar productos según búsqueda y categoría
-productos_filtrados = [
-    p for p in productos
-    if (categoria_seleccionada == "Todos" or p["categoria"] == categoria_seleccionada)
-    and (busqueda.lower() in p["nombre"].lower())
-]
+    let carrito = [];
 
-# Mostrar productos
-cols = st.columns(3)
+    function renderProductos(filtro = "") {
+      const contenedor = document.getElementById("lista-productos");
+      contenedor.innerHTML = "";
 
-for idx, producto in enumerate(productos_filtrados):
-    with cols[idx % 3]:
-        st.image(producto["imagen"], caption=producto["nombre"], use_container_width=True)
-        st.write(f"**{producto['nombre']}**")
-        st.write(f"Precio: ${producto['precio']}")
-        if st.button(f"Agregar al carrito {producto['nombre']}", key=producto['nombre']):
-            agregar_al_carrito(producto)
+      const filtrados = productos.filter(p =>
+        p.nombre.toLowerCase().includes(filtro.toLowerCase())
+      );
+
+      filtrados.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "producto";
+        div.innerHTML = `
+          <img src="${p.imagen}" alt="${p.nombre}" />
+          <h3>${p.nombre}</h3>
+          <p>Precio: $${p.precio}</p>
+          <button class="btn" onclick='agregarAlCarrito("${p.nombre}")'>Agregar</button>
+        `;
+        contenedor.appendChild(div);
+      });
+    }
+
+    function agregarAlCarrito(nombre) {
+      carrito.push(nombre);
+      document.getElementById("carrito").innerText = `🛒 Carrito (${carrito.length})`;
+    }
+
+    function buscarHelado(valor) {
+      renderProductos(valor);
+    }
+
+    renderProductos();
+  </script>
+
+</body>
+</html>
+"""
+
+# Mostrar en Streamlit
+st.set_page_config(layout="wide")
+st.title("Vista HTML de la Heladería")
+html(html_code, height=900, scrolling=True)
