@@ -1,4 +1,5 @@
-mport streamlit as st
+import streamlit as st
+
 
 # Configuración de la página
 st.set_page_config(page_title="Heladería Tropical", layout="wide")
